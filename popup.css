@@ -1,0 +1,13 @@
+body {
+    min-height: 300px;
+    min-width: 200px;
+}
+
+#success-message {
+    opacity: 0;
+    transition: opacity 1s ease-out;
+}
+
+#error-message {
+    color: red;
+}
