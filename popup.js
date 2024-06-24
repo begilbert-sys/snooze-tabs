@@ -27,7 +27,10 @@ function currentDatetimeString () {
 async function getCurrentTabURL() {
     let queryOptions = { active: true, lastFocusedWindow: true };
     let [tab] = await chrome.tabs.query(queryOptions);
-    console.log(tab);
+    if (tab == undefined) {
+        console.error("tab is undefined");
+        return undefined;
+    }
     return tab.url;
 }
 
@@ -39,7 +42,7 @@ dateControl.value = dtString;
 dateControl.min = dtString;
 
 /* create the alarm manager */
-var alarmManager = AlarmManager();
+var alarmManager = new AlarmManager();
 
 /* when the form is submitted */
 const form = document.querySelector('#sleep-tab-form');
@@ -47,10 +50,13 @@ form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const currentTabURL = await getCurrentTabURL();
+    if (currentTabURL == undefined) {
+        return;
+    }
 
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
-    const wakeTime = new Date(data['wake-tab-at']);
+    const wakeTime = new Date(data['wake-tab-at']).getTime();
 
     /* set the alarm */
     alarmManager.setAlarm(currentTabURL, wakeTime);
@@ -62,5 +68,4 @@ form.addEventListener('submit', async (event) => {
         successMessage.style.opacity = "0";
         console.log('setTimeout fired');
     }, 2500);
-
 });

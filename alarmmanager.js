@@ -1,25 +1,23 @@
+/*
+alarmData structure: 
+{
+    [alarmName: string]: {
+        url: string
+        wakeTime: number
+    }
+}
+*/
 export default class AlarmManager {
-    /**
-     * Maps alarm names to tab URLs
-     * For instance:
-     * alarmURLs.get('1719005982808') -> 'https://developer.chrome.com/docs/extensions/reference/api/alarms'
-     * @type {Map}
-     * @private
-     */
-    #alarmURLs;
-
     constructor() {
-        this.#alarmURLs = new Map();
 
         /* when an alarm goes off, open its tab */
         chrome.alarms.onAlarm.addListener(async (alarm) => {
-            const url = this.#alarmURLs.get(alarm.name);
+            const alarmData = await chrome.storage.sync.get(alarm.name);
             chrome.tabs.create({
-                url
+                url: alarmData[alarm.name].url
             });
-            this.#alarmURLs.delete(alarm.name);
+            await chrome.storage.sync.remove(alarm.name);
         });
-
     }
 
     /**
@@ -30,19 +28,28 @@ export default class AlarmManager {
         return new Date().valueOf().toString();
     }
 
+    async updateAllTimers() {
+
+    }
+
     /**
      * Create an alarm that will open the URL at the specified datetime
      * @param {string} url - the URL to be opened
      * @param {Date} waketime - the datetime at which it will be opened
      */
 
-    setAlarm(url, wakeTime) {
-        const alarmName = generateAlarmName();
+    async setAlarm(url, wakeTime) {
+        const alarmName = this.#generateAlarmName();
 
-        this.#alarmURLs.set(alarmName, url);
+        const alarmData = {
+            url: url,
+            wakeTime: wakeTime
+        };
+
+        await chrome.storage.sync.set({ [alarmName]: alarmData });
 
         chrome.alarms.create(alarmName, {
-            when: wakeTime.getTime()
+            when: wakeTime
         });
     }
 }
